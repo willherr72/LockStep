@@ -1,0 +1,381 @@
+<style>
+  :root{
+    --ground:#0e1519; --panel:#151f25; --panel-2:#1b262d; --panel-3:#20303a;
+    --border:#26363f; --border-2:#33474f;
+    --text:#e9eff2; --muted:#93a6b0; --faint:#63788200;
+    --muted-2:#728690;
+    --power:#f2b043; --power-dim:#4d3f21;
+    --signal:#4fd6c9; --signal-dim:#234b48;
+    --warn:#e88274;
+    --mono: ui-monospace,'SF Mono','JetBrains Mono','Cascadia Code',Menlo,Consolas,monospace;
+    --sans: system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--text);
+    font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased;
+    background-image:
+      linear-gradient(rgba(79,214,201,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(79,214,201,.035) 1px,transparent 1px);
+    background-size:32px 32px;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:48px 24px 72px}
+  .fade{animation:fade .6s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.fade{animation:none}}
+
+  /* ---- title block ---- */
+  .title{border:1px solid var(--border-2);border-radius:10px;overflow:hidden;background:linear-gradient(180deg,var(--panel-2),var(--panel))}
+  .title-main{padding:30px 30px 26px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px;justify-content:space-between}
+  .brand{font-family:var(--mono);font-size:clamp(34px,6vw,54px);font-weight:600;letter-spacing:-1px;margin:0;line-height:1;text-wrap:balance}
+  .brand .lo{color:var(--text)} .brand .step{color:var(--power)}
+  .tagline{color:var(--muted);font-size:15px;margin:10px 0 0;max-width:46ch}
+  .legend{display:flex;gap:16px;font-family:var(--mono);font-size:11px;letter-spacing:.5px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:7px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .dot.p{background:var(--power)} .dot.s{background:var(--signal)}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:1px solid var(--border)}
+  .meta div{padding:13px 18px;border-right:1px solid var(--border)}
+  .meta div:last-child{border-right:none}
+  .meta .k{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;color:var(--muted-2);text-transform:uppercase}
+  .meta .v{font-family:var(--mono);font-size:14px;color:var(--text);margin-top:3px}
+  .meta .v.ok{color:var(--signal)}
+
+  /* ---- sections ---- */
+  section{margin-top:44px}
+  .eyebrow{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:0 0 16px}
+  .eyebrow svg{width:17px;height:17px;color:var(--power);flex:none}
+  .eyebrow .n{color:var(--border-2);margin-left:auto;font-size:11px;letter-spacing:1px}
+  h2.sec{font-size:22px;margin:0 0 4px;font-weight:600;letter-spacing:-.3px}
+  p.lead{color:var(--muted);margin:0 0 18px;font-size:15px;max-width:70ch}
+
+  .scroll{overflow-x:auto;border-radius:10px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px}
+  figure{margin:0}
+  .diagram{display:block;min-width:640px;width:100%;height:auto;padding:20px 14px}
+  figcaption{color:var(--muted-2);font-size:13px;font-family:var(--mono);padding:0 4px;margin-top:10px;letter-spacing:.3px}
+
+  /* svg diagram styling */
+  .bx{fill:var(--panel-2);stroke:var(--border-2);stroke-width:1.4;rx:7}
+  .bx-p{stroke:var(--power)} .bx-s{stroke:var(--signal)} .bx-n{stroke:var(--border-2)}
+  .bx-vm{fill:#241d10;stroke:var(--power);stroke-width:1.8}
+  .bx-esp{fill:#12292a;stroke:var(--signal);stroke-width:1.8}
+  .lbl{fill:var(--text);font-family:var(--mono);font-size:13.5px;font-weight:600}
+  .sub{fill:var(--muted);font-family:var(--mono);font-size:10.5px}
+  .wt{fill:var(--muted-2);font-family:var(--mono);font-size:10.5px;letter-spacing:.4px}
+  .wire{fill:none;stroke-width:1.7}
+  .wp{stroke:var(--power)} .ws{stroke:var(--signal)} .wn{stroke:#5f757f}
+  .dash{stroke-dasharray:5 4}
+
+  /* ---- callout ---- */
+  .note{display:flex;gap:14px;background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:8px;padding:15px 18px;margin-top:16px}
+  .note svg{width:20px;height:20px;color:var(--warn);flex:none;margin-top:2px}
+  .note p{margin:0;font-size:14px;color:var(--muted)}
+  .note strong{color:var(--text);font-weight:600}
+
+  /* ---- tables ---- */
+  table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+  thead th{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);text-align:left;padding:12px 16px;border-bottom:1px solid var(--border-2);font-weight:500}
+  tbody td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  td.part{font-family:var(--mono);color:var(--signal);white-space:nowrap}
+  td.blk{font-weight:600}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* pinout */
+  .pins{display:flex;gap:8px;flex-wrap:wrap;font-family:var(--mono)}
+  .pin{flex:1;min-width:76px;border:1px solid var(--border-2);border-radius:8px;padding:12px 10px;text-align:center;background:var(--panel)}
+  .pin .no{font-size:10px;color:var(--muted-2);letter-spacing:1px}
+  .pin .sig{font-size:15px;font-weight:600;margin-top:5px}
+  .pin.pwr{border-color:var(--power-dim)} .pin.pwr .sig{color:var(--power)}
+  .pin.can{border-color:var(--signal-dim)} .pin.can .sig{color:var(--signal)}
+
+  /* cards */
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px}
+  .card h3{margin:0 0 8px;font-size:15px;font-family:var(--mono);display:flex;align-items:center;gap:8px}
+  .card h3 svg{width:16px;height:16px;color:var(--signal)}
+  .card p{margin:0;font-size:13.5px;color:var(--muted)}
+  .card .tag{font-family:var(--mono);font-size:11px;color:var(--muted-2);letter-spacing:.5px;margin-top:10px;display:block}
+
+  /* tiers */
+  .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .tier{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px}
+  .tier.hp{border-color:var(--power-dim)}
+  .tier .badge{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ground);background:var(--signal);padding:3px 9px;border-radius:20px;font-weight:600}
+  .tier.hp .badge{background:var(--power)}
+  .tier h3{font-size:18px;margin:12px 0 12px;letter-spacing:-.2px}
+  .tier ul{margin:0;padding:0;list-style:none;font-size:13.5px}
+  .tier li{padding:7px 0;border-top:1px solid var(--border);display:flex;gap:10px;color:var(--muted)}
+  .tier li:first-child{border-top:none}
+  .tier li b{color:var(--text);font-weight:600;font-family:var(--mono);font-size:12px;min-width:78px;flex:none}
+
+  /* build order */
+  .steps{display:grid;gap:10px}
+  .step{display:flex;gap:16px;align-items:flex-start;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:15px 18px}
+  .step .idx{font-family:var(--mono);font-size:16px;color:var(--power);font-weight:600;min-width:26px;font-variant-numeric:tabular-nums}
+  .step .body b{display:block;font-size:15px;margin-bottom:2px}
+  .step .body span{font-size:13.5px;color:var(--muted)}
+
+  footer{margin-top:52px;padding-top:22px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+  footer .path{font-family:var(--mono);font-size:12.5px;color:var(--muted-2)}
+  footer .path b{color:var(--signal);font-weight:500}
+  footer .open{font-size:12.5px;color:var(--muted-2);max-width:52ch}
+  a{color:var(--signal)}
+  :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
+</style>
+
+<div class="wrap fade">
+
+  <!-- ================= TITLE BLOCK ================= -->
+  <div class="title">
+    <div class="title-main">
+      <div>
+        <h1 class="brand"><span class="lo">Lock</span><span class="step">Step</span></h1>
+        <p class="tagline">Modular closed-loop stepper actuator — one node per motor, chained over a single power + CAN cable, controllable by USB, CAN, or wireless.</p>
+      </div>
+      <div class="legend">
+        <span><i class="dot p"></i> Power domain</span>
+        <span><i class="dot s"></i> Signal / data</span>
+      </div>
+    </div>
+    <div class="meta">
+      <div><div class="k">Status</div><div class="v" style="color:var(--warn)">Superseded — see DESIGN.md v2</div></div>
+      <div><div class="k">Revision</div><div class="v">v1 (superseded 2026-08-18)</div></div>
+      <div><div class="k">Updated</div><div class="v tnum">2026-07-05</div></div>
+      <div><div class="k">Application</div><div class="v">6-axis NEMA 17 arm</div></div>
+    </div>
+  </div>
+
+  <!-- ================= SIGNAL CHAIN ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="8" rx="1"/><path d="M8 8V5M16 8V5M8 19v-3M16 19v-3M1 12h3M20 12h3"/></svg>
+      Node architecture <span class="n">FIG.1</span>
+    </div>
+    <h2 class="sec">The smart-actuator node</h2>
+    <p class="lead">Every LockStep node is identical. An ESP32-S3 runs the show; a TMC5130 with an internal ramp generator handles the motor so WiFi jitter never corrupts step timing; a magnetic encoder closes the loop.</p>
+    <figure class="scroll panel">
+      <svg class="diagram" viewBox="0 0 860 232" role="img" aria-label="Signal chain: USB-C and wireless to ESP32-S3, SPI to TMC5130, to stepper, with magnetic encoder feedback loop.">
+        <defs>
+          <marker id="s1" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#4fd6c9"/></marker>
+          <marker id="n1" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#5f757f"/></marker>
+        </defs>
+        <!-- boxes -->
+        <g><rect class="bx bx-s" x="16" y="38" width="150" height="58" rx="7"/><text class="lbl" x="91" y="63" text-anchor="middle">USB-C</text><text class="sub" x="91" y="80" text-anchor="middle">flash · CDC · PD</text></g>
+        <g><rect class="bx bx-esp" x="236" y="38" width="150" height="58" rx="7"/><text class="lbl" x="311" y="63" text-anchor="middle">ESP32-S3</text><text class="sub" x="311" y="80" text-anchor="middle">WiFi / BLE · TWAI</text></g>
+        <g><rect class="bx bx-s" x="456" y="38" width="150" height="58" rx="7"/><text class="lbl" x="531" y="63" text-anchor="middle">TMC5130</text><text class="sub" x="531" y="80" text-anchor="middle">driver + ramp gen</text></g>
+        <g><rect class="bx bx-n" x="676" y="38" width="150" height="58" rx="7"/><text class="lbl" x="751" y="63" text-anchor="middle">Stepper</text><text class="sub" x="751" y="80" text-anchor="middle">NEMA 17</text></g>
+        <g><rect class="bx bx-s" x="456" y="152" width="150" height="52" rx="7"/><text class="lbl" x="531" y="175" text-anchor="middle">Encoder</text><text class="sub" x="531" y="192" text-anchor="middle">AS5600 / MT6701</text></g>
+        <!-- forward wires -->
+        <path class="wire ws" d="M166,67 H230" marker-end="url(#s1)"/>
+        <text class="wt" x="198" y="56" text-anchor="middle">USB / WiFi</text>
+        <path class="wire ws" d="M386,67 H450" marker-end="url(#s1)"/>
+        <text class="wt" x="421" y="56" text-anchor="middle">SPI + motion</text>
+        <path class="wire wn" d="M606,67 H670" marker-end="url(#n1)"/>
+        <text class="wt" x="638" y="56" text-anchor="middle">coils</text>
+        <!-- feedback loop -->
+        <path class="wire ws dash" d="M751,96 V178 H610" marker-end="url(#s1)"/>
+        <text class="wt" x="700" y="170" text-anchor="middle">senses shaft</text>
+        <path class="wire ws dash" d="M456,178 H311 V98" marker-end="url(#s1)"/>
+        <text class="wt" x="360" y="196" text-anchor="middle">I2C position</text>
+      </svg>
+      <figcaption>closed loop: ESP32-S3 → TMC5130 → stepper → encoder → back to ESP32-S3</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= POWER TREE ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+      Power tree <span class="n">FIG.2</span>
+    </div>
+    <h2 class="sec">Two rails, dual-sourced</h2>
+    <p class="lead">USB-C PD and the harness feed a shared ~20 V rail through an ideal-diode OR — so any node can be the base, and the node's 20 V can never back-feed the PC. A wide-input buck makes 3.3 V from anywhere between 5 V (USB) and 20 V (PD).</p>
+    <figure class="scroll panel">
+      <svg class="diagram" viewBox="0 0 860 292" role="img" aria-label="Power tree: USB-C PD and Power In OR'd into a 20 volt VM rail feeding the TMC driver, a buck to 3.3 volts feeding the ESP32-S3, and the Micro-Fit harness.">
+        <defs>
+          <marker id="p2" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#f2b043"/></marker>
+        </defs>
+        <g><rect class="bx bx-p" x="16" y="40" width="122" height="54" rx="7"/><text class="lbl" x="77" y="63" text-anchor="middle">USB-C PD</text><text class="sub" x="77" y="80" text-anchor="middle">STUSB4500</text></g>
+        <g><rect class="bx bx-p" x="16" y="182" width="122" height="54" rx="7"/><text class="lbl" x="77" y="205" text-anchor="middle">Power in</text><text class="sub" x="77" y="222" text-anchor="middle">harness / DC</text></g>
+        <g><rect class="bx bx-p" x="196" y="110" width="128" height="56" rx="7"/><text class="lbl" x="260" y="133" text-anchor="middle">Ideal-diode</text><text class="sub" x="260" y="150" text-anchor="middle">OR / reverse-block</text></g>
+        <g><rect class="bx bx-vm" x="384" y="96" width="96" height="84" rx="7"/><text class="lbl" x="432" y="132" text-anchor="middle" fill="#f2b043">VM</text><text class="sub" x="432" y="150" text-anchor="middle">~20 V</text></g>
+        <g><rect class="bx bx-p" x="560" y="40" width="122" height="54" rx="7"/><text class="lbl" x="621" y="63" text-anchor="middle">TMC5130</text><text class="sub" x="621" y="80" text-anchor="middle">motor rail</text></g>
+        <g><rect class="bx bx-p" x="560" y="182" width="122" height="54" rx="7"/><text class="lbl" x="621" y="205" text-anchor="middle">Buck → 3V3</text><text class="sub" x="621" y="222" text-anchor="middle">5–24 V in</text></g>
+        <g><rect class="bx bx-esp" x="712" y="182" width="132" height="54" rx="7"/><text class="lbl" x="778" y="205" text-anchor="middle">ESP32-S3</text><text class="sub" x="778" y="222" text-anchor="middle">+ sensors</text></g>
+        <g><rect class="bx bx-p" x="712" y="40" width="132" height="54" rx="7"/><text class="lbl" x="778" y="63" text-anchor="middle">Micro-Fit</text><text class="sub" x="778" y="80" text-anchor="middle">+V to harness</text></g>
+        <!-- wires -->
+        <path class="wire wp" d="M138,67 H168 V123 H196" marker-end="url(#p2)"/>
+        <path class="wire wp" d="M138,209 H168 V153 H196" marker-end="url(#p2)"/>
+        <path class="wire wp" d="M324,138 H356 V138 H384" marker-end="url(#p2)"/>
+        <path class="wire wp" d="M480,120 H520 V67 H556" marker-end="url(#p2)"/>
+        <path class="wire wp" d="M480,156 H520 V209 H556" marker-end="url(#p2)"/>
+        <path class="wire wp" d="M682,209 H708" marker-end="url(#p2)"/>
+        <path class="wire wp" d="M432,96 V20 H778 V36" marker-end="url(#p2)"/>
+        <text class="wt" x="600" y="14" text-anchor="middle">harness power passes through</text>
+      </svg>
+      <figcaption>no 5 V rail — 3.3 V CAN transceiver + the TMC's internal 5VOUT remove the need</figcaption>
+    </figure>
+    <div class="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <p><strong>You can't drive the motor from PC USB.</strong> 5 V sits below the TMC5130's ~6 V undervoltage lockout, so USB powers the logic only — perfect for flashing/config with the motor idle. Motor power always comes from the 20 V supply. That power-domain separation is what the design needs; an optoisolator is not.</p>
+    </div>
+  </section>
+
+  <!-- ================= TOPOLOGY ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M7.2 11 17 5.8M7.2 13 17 18.2"/></svg>
+      Bus topology <span class="n">FIG.3</span>
+    </div>
+    <h2 class="sec">One CAN bus, terminated at the ends</h2>
+    <p class="lead">Nodes daisy-chain over Micro-Fit — a linear CAN bus with power passing through. A 120 Ω terminator plug goes in each of the two unused end jacks; never in the middle.</p>
+    <figure class="scroll panel">
+      <svg class="diagram" viewBox="0 0 860 150" role="img" aria-label="Daisy chain: 120 ohm terminator, base node, joints, ending in another 120 ohm terminator.">
+        <defs>
+          <marker id="n3" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#5f757f"/></marker>
+        </defs>
+        <g><circle cx="38" cy="72" r="24" fill="#241d10" stroke="#f2b043" stroke-width="1.6"/><text class="sub" x="38" y="69" text-anchor="middle" fill="#f2b043">120Ω</text><text class="sub" x="38" y="82" text-anchor="middle">term</text></g>
+        <g><rect class="bx bx-esp" x="86" y="44" width="132" height="56" rx="7"/><text class="lbl" x="152" y="68" text-anchor="middle">Base node</text><text class="sub" x="152" y="85" text-anchor="middle">USB-C + PWR</text></g>
+        <g><rect class="bx bx-s" x="262" y="44" width="120" height="56" rx="7"/><text class="lbl" x="322" y="68" text-anchor="middle">Joint 2</text><text class="sub" x="322" y="85" text-anchor="middle">actuator</text></g>
+        <g><rect class="bx bx-s" x="426" y="44" width="120" height="56" rx="7"/><text class="lbl" x="486" y="68" text-anchor="middle">Joint 3</text><text class="sub" x="486" y="85" text-anchor="middle">actuator</text></g>
+        <text class="lbl" x="600" y="78" text-anchor="middle" fill="#728690">· · ·</text>
+        <g><rect class="bx bx-s" x="644" y="44" width="120" height="56" rx="7"/><text class="lbl" x="704" y="68" text-anchor="middle">Joint N</text><text class="sub" x="704" y="85" text-anchor="middle">actuator</text></g>
+        <g><circle cx="822" cy="72" r="24" fill="#241d10" stroke="#f2b043" stroke-width="1.6"/><text class="sub" x="822" y="69" text-anchor="middle" fill="#f2b043">120Ω</text><text class="sub" x="822" y="82" text-anchor="middle">term</text></g>
+        <path class="wire wn" d="M62,72 H86"/>
+        <path class="wire wn" d="M218,72 H262"/>
+        <path class="wire wn" d="M382,72 H426"/>
+        <path class="wire wn dash" d="M546,72 H584"/>
+        <path class="wire wn dash" d="M616,72 H644"/>
+        <path class="wire wn" d="M764,72 H798"/>
+        <text class="wt" x="322" y="122" text-anchor="middle">Micro-Fit: +V · GND · CAN_H · CAN_L</text>
+      </svg>
+      <figcaption>plug USB or WiFi into any node — each one bridges USB↔CAN and WiFi↔CAN to reach the whole chain</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= COMPONENTS ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+      Core components
+    </div>
+    <h2 class="sec">Bill of the brain</h2>
+    <div class="scroll panel">
+      <table>
+        <thead><tr><th>Block</th><th>Part</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="blk">MCU</td><td class="part">ESP32-S3-WROOM-1</td><td>WiFi/BLE built in; native USB-Serial-JTAG (flash + debug, no bridge); dual-core to isolate the control loop from the WiFi stack.</td></tr>
+          <tr><td class="blk">Driver</td><td class="part">TMC5130</td><td>Integrated FETs + internal ramp generator offloads real-time step timing; SPI; StealthChop; right-sized for NEMA 17 (1.4 A RMS, 6–46 V).</td></tr>
+          <tr><td class="blk">Encoder</td><td class="part">AS5600 / MT6701</td><td>Magnetic absolute feedback — stall detection, position correction, near-absolute angle at power-up.</td></tr>
+          <tr><td class="blk">PD sink</td><td class="part">STUSB4500</td><td>Autonomous — negotiates up to 20 V at boot with zero firmware.</td></tr>
+          <tr><td class="blk">3V3 supply</td><td class="part">LMR33630-class</td><td>Buck, 5–24 V in → 3.3 V; input range spans USB 5 V to PD 20 V so the node boots off a plain PC.</td></tr>
+          <tr><td class="blk">CAN</td><td class="part">SN65HVD230 / TCAN332</td><td>3.3 V transceiver on the ESP32 TWAI controller + a ferrite; avoids needing a 5 V rail.</td></tr>
+          <tr><td class="blk">Interconnect</td><td class="part">Molex 43045-0600</td><td>Micro-Fit 3.0, 6-ckt right-angle header ×2 (in/out). Latching, one cable = power + CAN, fits a 42 mm node.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= PINOUT ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 8V6M12 8V6M17 8V6"/></svg>
+      Interconnect pinout
+    </div>
+    <h2 class="sec">Micro-Fit 3.0 — 6 circuit</h2>
+    <p class="lead">Power pins paralleled for ~17 A; CAN pair alongside. A terminator plug is just this housing with 120 Ω across pins 5–6.</p>
+    <div class="pins">
+      <div class="pin pwr"><div class="no">PIN 1</div><div class="sig">+V</div></div>
+      <div class="pin pwr"><div class="no">PIN 2</div><div class="sig">+V</div></div>
+      <div class="pin pwr"><div class="no">PIN 3</div><div class="sig">GND</div></div>
+      <div class="pin pwr"><div class="no">PIN 4</div><div class="sig">GND</div></div>
+      <div class="pin can"><div class="no">PIN 5</div><div class="sig">CAN_H</div></div>
+      <div class="pin can"><div class="no">PIN 6</div><div class="sig">CAN_L</div></div>
+    </div>
+  </section>
+
+  <!-- ================= TRANSPORTS ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12v.01M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.5 5.5a9 9 0 0 0 0 13M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+      Control transports
+    </div>
+    <h2 class="sec">One command set, three ways in</h2>
+    <div class="grid3">
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 6h4"/></svg>USB</h3>
+        <p>Native USB-Serial-JTAG for flashing; CDC virtual serial for control and config.</p>
+        <span class="tag">bench / development</span>
+      </div>
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 12l4-4M4 12l4 4M20 6v12"/></svg>CAN</h3>
+        <p>The control path inside the arm — a host or master node streams joint targets over the bus.</p>
+        <span class="tag">in the machine</span>
+      </div>
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12a7 7 0 0 1 14 0M8.5 12a3.5 3.5 0 0 1 7 0M12 12v6"/></svg>WiFi / BLE</h3>
+        <p>Wireless control and OTA updates — built into the ESP32-S3, no extra radio.</p>
+        <span class="tag">remote</span>
+      </div>
+    </div>
+    <div class="note" style="border-left-color:var(--signal)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4fd6c9" stroke-width="2"><path d="M12 2v20M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      <p><strong>Every node is a gateway.</strong> Because each node has both USB and CAN, plugging USB into (or connecting WiFi to) any single joint reaches the whole chain — no external USB-CAN dongle required.</p>
+    </div>
+  </section>
+
+  <!-- ================= TIERS ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 3 8l9 5 9-5-9-5zM3 13l9 5 9-5M3 18l9 5 9-5"/></svg>
+      Ecosystem tiers
+    </div>
+    <h2 class="sec">One platform, two power tiers</h2>
+    <p class="lead">Same ESP32-S3 brain, same CAN protocol, same firmware. Micro-Fit is the universal signal connector across every tier — only the power path changes.</p>
+    <div class="tiers">
+      <div class="tier">
+        <span class="badge">Standard</span>
+        <h3>LockStep</h3>
+        <ul>
+          <li><b>Motor</b>NEMA 17</li>
+          <li><b>Driver</b>TMC5130, integrated FETs</li>
+          <li><b>Power</b>USB-C PD or DC, ~50–100 W</li>
+          <li><b>Cable</b>Micro-Fit carries power + CAN</li>
+        </ul>
+      </div>
+      <div class="tier hp">
+        <span class="badge">High power</span>
+        <h3>LockStep HP</h3>
+        <ul>
+          <li><b>Motor</b>NEMA 23 / 34</li>
+          <li><b>Driver</b>TMC5160 + external FETs</li>
+          <li><b>Power</b>48 V DC + regen brake clamp</li>
+          <li><b>Cable</b>heavy power connector; Micro-Fit carries CAN only</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BUILD ORDER ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      Build order
+    </div>
+    <h2 class="sec">De-risk the brain first</h2>
+    <div class="steps">
+      <div class="step"><div class="idx">1</div><div class="body"><b>NEMA 17 bring-up board</b><span>Deliberately oversized — test points, debug header, WROOM module. Prove the architecture and closed-loop firmware with room to probe.</span></div></div>
+      <div class="step"><div class="idx">2</div><div class="body"><b>Productize to 42 mm</b><span>Collapse the proven design into the NEMA 17 back-mount form factor.</span></div></div>
+      <div class="step"><div class="idx">3</div><div class="body"><b>Branch up → LockStep HP</b><span>External FETs, NEMA 23/34, 48 V with a regen clamp.</span></div></div>
+      <div class="step"><div class="idx">4</div><div class="body"><b>Branch down → NEMA 11 / 8</b><span>Chip-down ESP32-S3, since the WROOM module won't fit the smaller motor face.</span></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="path">spec: <b>LockStep/docs/DESIGN.md</b></div>
+    <div class="open">Open items: final bus voltage · HP regen clamp · per-joint gear ratios · inverse-kinematics firmware · homing strategy.</div>
+  </footer>
+
+</div>
