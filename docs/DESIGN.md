@@ -80,7 +80,7 @@ motor loop.
 
 | Block | Part | Why |
 |---|---|---|
-| Motion MCU | **STM32G431** (bring-up) → **STM32G49x-class** (production) | 170 MHz M4F, FPU + CORDIC, hardware encoder timers, native **FDCAN**, USB FS device + ROM DFU. Step up to G49x if motion-program storage outgrows 128 K flash. |
+| Motion MCU | **STM32G491RET6** (bring-up, LQFP-64) → **STM32G491CET6** (production, LQFP-48) | 170 MHz M4F, FPU + CORDIC, hardware encoder timers, native **FDCAN**, USB FS device + ROM DFU (crystal-less via HSI48+CRS). 512 K flash / 112 K RAM holds motion programs and lookahead buffers — no external NOR. Same die both boards; 64-pin for bring-up probing, 48-pin once the pin map is proven. T7 (105 °C) grade preferred for production if stocked — the board rides a hot motor. |
 | Wireless | **ESP32-C6-MINI-1** | WiFi 6 + BLE 5 (+ 802.15.4 for future mesh), pre-certified module, 13.2×16.6 mm, fully isolated from motion. |
 | Stepper driver | **TMC5130** (integrated FETs) | Unchanged from v1: internal ramp generator owns step timing; SPI; StealthChop/SpreadCycle; 1.4 A RMS — right-sized for NEMA 17. |
 | Feedback | **MT6701**, SSI mode | 14-bit absolute magnetic encoder, fast serial read. (AS5600 dropped — I2C-only is too slow for future high-rate loops.) |
@@ -187,8 +187,8 @@ Same STM32G4 + C6 brain, same CAN-FD protocol, same firmware, same 5 V transceiv
 
 ## 9. Build order
 
-1. **NEMA 17 bring-up board** — deliberately oversized, with test points, SWD header, and
-   breakouts. Proves: closed-loop control, the FD bus, the STM32↔C6 link, coordinator
+1. **NEMA 17 bring-up board** — deliberately oversized, G491RET6 (LQFP-64), with test
+   points, SWD header, and breakouts. Proves: closed-loop control, the FD bus, the STM32↔C6 link, coordinator
    election, and the PD budget policy.
 2. **Productize to 42 mm** NEMA 17 back-mount form factor.
 3. **Branch up** → LockStep HP (external FETs, NEMA 23/34, 48 V + regen clamp).
@@ -204,7 +204,8 @@ Same STM32G4 + C6 brain, same CAN-FD protocol, same firmware, same 5 V transceiv
   fixed-frequency options (believed 400 kHz / 2.1 MHz) at schematic capture and pick.
 - Final TCAN part number + 5 Mbps data-phase timing validation.
 - AP33772S package/stock check at capture.
-- G431 vs G49x flash budget for motion programs (or external SPI-NOR on the coordinator).
+- Confirm USB FS device + USB-DFU on STM32G491 in DS/AN2606 at capture (expected present, series-wide).
+- 48-pin pin-mux check before the production board drops to G491CET6 (~34 signals vs ~38 usable I/O).
 - STM32↔C6 framed-protocol spec.
 - Coordinator election protocol (config-ID first, auto-election later).
 - Final standard-tier bus voltage (20 vs 24 V).
