@@ -154,7 +154,15 @@ Three transports, **one command set**:
 WiFi↔UART↔CAN (C6 → STM32), so plugging USB into — or connecting wirelessly to — *any
 single joint* reaches the whole chain. No external USB-CAN dongle.
 
-**OTA:** the C6 updates itself over WiFi and pushes STM32 images across the UART link.
+**Firmware update paths — either chip can reflash the other (mutual unbrickability):**
+
+- **STM32:** USB DFU (ROM) · SWD · via C6 — the C6 drives STM32 `NRST` + `BOOT0` to enter
+  the ROM UART bootloader on the link UART and writes images received over WiFi.
+- **C6:** WiFi self-OTA · via STM32 — the STM32 drives C6 `EN` + `GPIO9` (BOOT) to enter
+  the esptool ROM bootloader on the same UART. A USB-CDC↔UART passthrough mode lets
+  PC-side esptool flash the C6 straight through the node's USB port.
+- Reset/boot straps are cross-wired in both directions; neither chip needs a custom
+  bootloader to recover from a bad image.
 
 ---
 
@@ -205,6 +213,9 @@ Same STM32G4 + C6 brain, same CAN-FD protocol, same firmware, same 5 V transceiv
 - Final TCAN part number + 5 Mbps data-phase timing validation.
 - AP33772S package/stock check at capture.
 - Confirm USB FS device + USB-DFU on STM32G491 in DS/AN2606 at capture (expected present, series-wide).
+- Link UART must land on an AN2606 ROM-bootloader USART (for C6→STM32 flashing); option
+  bytes must keep hardware BOOT0 enabled. Check whether AN2606 lists FDCAN for the G4
+  bootloader — if so, bare joints can be flashed over the bus.
 - 48-pin pin-mux check before the production board drops to G491CET6 (~34 signals vs ~38 usable I/O).
 - STM32↔C6 framed-protocol spec.
 - Coordinator election protocol (config-ID first, auto-election later).
