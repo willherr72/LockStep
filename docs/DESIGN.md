@@ -71,8 +71,10 @@ flowchart LR
 (SSI), CAN-FD, USB (CDC control + ROM DFU flashing), the PD budget (I2C to AP33772S), and
 all motion execution. The **ESP32-C6** is a pure wireless peripheral: WiFi/BLE
 provisioning, wireless transport, and OTA agent, speaking a framed protocol over UART
-(~3 Mbaud with CTS/RTS; SPI pads as fallback). An RF-stack crash can never disturb the
-motor loop.
+(~3 Mbaud with CTS/RTS). UART-only by design: the C6 terminates TCP/IP itself so the link
+carries framed commands and telemetry (~64 KB/s worst case against ~270 KB/s capacity),
+never raw network throughput — and both ROM bootloaders live on the same wires. An
+RF-stack crash can never disturb the motor loop.
 
 ---
 
@@ -84,7 +86,8 @@ motor loop.
 | Wireless | **ESP32-C6-MINI-1** | WiFi 6 + BLE 5 (+ 802.15.4 for future mesh), pre-certified module, 13.2×16.6 mm, fully isolated from motion. |
 | Stepper driver | **TMC5130** (integrated FETs) | Unchanged from v1: internal ramp generator owns step timing; SPI; StealthChop/SpreadCycle; 1.4 A RMS — right-sized for NEMA 17. |
 | Feedback | **MT6701**, SSI mode | 14-bit absolute magnetic encoder, fast serial read. (AS5600 dropped — I2C-only is too slow for future high-rate loops.) |
-| PD front-end | **AP33772S** | Autonomous negotiation at boot **plus** I2C PDO readback, so firmware knows the granted contract and derates motor current to the brick's real budget. |
+| PD front-end | **AP33772S** | Autonomous negotiation at boot **plus** I2C PDO readback, so firmware knows the granted contract and derates motor current to the brick's real budget. DP/DN (moisture detect) waived — NC per datasheet; the data pair belongs to the STM32. |
+| Ideal diode | **LM74700-Q1** + NMOS (40 V std / 100 V HP, ≤10 mΩ) | USB→VM reverse blocking: 3.2–65 V covers the 5 V USB corner through the 48 V tier; ~0.25 W at 5 A vs ~2 W for a Schottky. Escalate to LTC4359 (80 V) if the HP regen clamp exceeds ~58 V. |
 | 5 V supply | **LMR36015** buck | 4.2–**60 V** in, 1.5 A — one part covers the 20 V and 48 V tiers. High-frequency variant preferred (see open items). |
 | 3V3 supply | **TLV62569 / TPS62A02-class** sync buck | 2 A, >92 % efficient — no LDO dissipation question. Ferrite + local bulk at the C6 for TX bursts. |
 | CAN | **TCAN1042V / 1044V-class**, 5 V supply, 3V3 VIO, + ferrite/CMC | FD-rated to 5 Mbps with strong, symmetric differential drive; built-in level shifting via the VIO pin. **Same transceiver on both tiers.** |
@@ -163,6 +166,11 @@ single joint* reaches the whole chain. No external USB-CAN dongle.
   PC-side esptool flash the C6 straight through the node's USB port.
 - Reset/boot straps are cross-wired in both directions; neither chip needs a custom
   bootloader to recover from a bad image.
+- **Whole-arm updates: application-level CAN-FD DFU.** A/B image slots in the G491's
+  512 K flash; the coordinator (or any gateway node) streams images bus-wide — CRC, then
+  swap on reboot. The G491's ROM bootloader has no FDCAN interface
+  (AN2606: USART1/2/3, I2C, SPI, USB DFU only), so bus flashing is the application's
+  job by necessity; local recovery is USB DFU or the C6 cross-flash.
 
 ---
 
@@ -212,10 +220,9 @@ Same STM32G4 + C6 brain, same CAN-FD protocol, same firmware, same 5 V transceiv
   fixed-frequency options (believed 400 kHz / 2.1 MHz) at schematic capture and pick.
 - Final TCAN part number + 5 Mbps data-phase timing validation.
 - AP33772S package/stock check at capture.
-- Confirm USB FS device + USB-DFU on STM32G491 in DS/AN2606 at capture (expected present, series-wide).
-- Link UART must land on an AN2606 ROM-bootloader USART (for C6→STM32 flashing); option
-  bytes must keep hardware BOOT0 enabled. Check whether AN2606 lists FDCAN for the G4
-  bootloader — if so, bare joints can be flashed over the bus.
+- Option bytes must keep hardware BOOT0 enabled (nSWBOOT0=1). Verified per AN2606 Rev 61:
+  USART2 (PA2/PA3, 8-E-1) and USB DFU are G491 ROM bootloader interfaces.
+- A/B slot layout + CAN-FD DFU protocol for whole-arm updates (application-level).
 - 48-pin pin-mux check before the production board drops to G491CET6 (~34 signals vs ~38 usable I/O).
 - STM32↔C6 framed-protocol spec.
 - Coordinator election protocol (config-ID first, auto-election later).

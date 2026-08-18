@@ -1,0 +1,290 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="color-scheme" content="dark">
+<title>LockStep — pin map</title>
+<style>
+  :root{
+    --ground:#0e1519; --panel:#151f25; --panel-2:#1b262d; --panel-3:#20303a;
+    --border:#26363f; --border-2:#33474f;
+    --text:#e9eff2; --muted:#93a6b0; --muted-2:#728690;
+    --power:#f2b043; --power-dim:#4d3f21;
+    --signal:#4fd6c9; --signal-dim:#234b48;
+    --warn:#e88274;
+    --mono: ui-monospace,'SF Mono','JetBrains Mono','Cascadia Code',Menlo,Consolas,monospace;
+    --sans: system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--text);
+    font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased;
+    background-image:
+      linear-gradient(rgba(79,214,201,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(79,214,201,.035) 1px,transparent 1px);
+    background-size:32px 32px;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:48px 24px 72px}
+  .fade{animation:fade .6s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.fade{animation:none}}
+
+  /* ---- title block ---- */
+  .title{border:1px solid var(--border-2);border-radius:10px;overflow:hidden;background:linear-gradient(180deg,var(--panel-2),var(--panel))}
+  .title-main{padding:30px 30px 26px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px;justify-content:space-between}
+  .brand{font-family:var(--mono);font-size:clamp(30px,5vw,44px);font-weight:600;letter-spacing:-1px;margin:0;line-height:1;white-space:nowrap}
+  .brand .lo{color:var(--text)} .brand .st{color:var(--power)}
+  .brand .doc{color:var(--muted-2);font-weight:500}
+  .tagline{color:var(--muted);font-size:15px;margin:10px 0 0;max-width:52ch}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:1px solid var(--border)}
+  .meta div{padding:13px 18px;border-right:1px solid var(--border)}
+  .meta div:last-child{border-right:none}
+  .meta .k{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;color:var(--muted-2);text-transform:uppercase}
+  .meta .v{font-family:var(--mono);font-size:14px;color:var(--text);margin-top:3px}
+  .meta .v.ok{color:var(--signal)}
+
+  /* ---- sections ---- */
+  section{margin-top:44px}
+  .eyebrow{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:0 0 16px}
+  .eyebrow svg{width:17px;height:17px;color:var(--power);flex:none}
+  .eyebrow .n{color:var(--border-2);margin-left:auto;font-size:11px;letter-spacing:1px}
+  h2.sec{font-size:22px;margin:0 0 4px;font-weight:600;letter-spacing:-.3px}
+  p.lead{color:var(--muted);margin:0 0 18px;font-size:15px;max-width:72ch}
+
+  .scroll{overflow-x:auto;border-radius:10px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px}
+  figure{margin:0}
+  .diagram{display:block;min-width:640px;width:100%;height:auto;padding:20px 14px}
+  figcaption{color:var(--muted-2);font-size:13px;font-family:var(--mono);padding:0 4px;margin-top:10px;letter-spacing:.3px}
+
+  /* svg */
+  .bx{fill:var(--panel-2);stroke:var(--border-2);stroke-width:1.4;rx:7}
+  .bx-s{stroke:var(--signal)}
+  .bx-mcu{fill:#12292a;stroke:var(--signal);stroke-width:1.8}
+  .lbl{fill:var(--text);font-family:var(--mono);font-size:13.5px;font-weight:600}
+  .sub{fill:var(--muted);font-family:var(--mono);font-size:10.5px}
+  .pinlbl{fill:var(--text);font-family:var(--mono);font-size:11px}
+  .wt{fill:var(--muted-2);font-family:var(--mono);font-size:10.5px;letter-spacing:.4px}
+  .wire{fill:none;stroke-width:1.7}
+  .ws{stroke:var(--signal)} .wn{stroke:#5f757f}
+  .dash{stroke-dasharray:5 4}
+
+  /* ---- callout ---- */
+  .note{display:flex;gap:14px;background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:8px;padding:15px 18px;margin-top:16px}
+  .note svg{width:20px;height:20px;color:var(--warn);flex:none;margin-top:2px}
+  .note p{margin:0;font-size:14px;color:var(--muted)}
+  .note strong{color:var(--text);font-weight:600}
+
+  /* ---- tables ---- */
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+  thead th{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);text-align:left;padding:12px 16px;border-bottom:1px solid var(--border-2);font-weight:500}
+  tbody td{padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text)}
+  tbody tr:last-child td{border-bottom:none}
+  td.pin{font-family:var(--mono);color:var(--signal);white-space:nowrap}
+  td.pin.wrapok{white-space:normal}
+  thead th:nth-child(4){min-width:150px}
+  thead th:nth-child(5){min-width:240px}
+  td.af{font-family:var(--mono);color:var(--muted);white-space:nowrap;font-size:13px}
+  td.sig{font-weight:600;white-space:nowrap}
+  td.to{color:var(--muted)}
+  tr.grp td{background:var(--panel-2);font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--power);padding:8px 16px;border-bottom:1px solid var(--border-2)}
+  .chip{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.5px;color:var(--warn);border:1px solid var(--warn);border-radius:20px;padding:0 8px;margin-left:8px;vertical-align:1px}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  footer{margin-top:52px;padding-top:22px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+  footer .path{font-family:var(--mono);font-size:12.5px;color:var(--muted-2)}
+  footer .path b{color:var(--signal);font-weight:500}
+  footer .open{font-size:12.5px;color:var(--muted-2);max-width:56ch}
+  a{color:var(--signal)}
+  :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
+</style>
+
+<div class="wrap fade">
+
+  <!-- ================= TITLE ================= -->
+  <div class="title">
+    <div class="title-main">
+      <div>
+        <h1 class="brand"><span class="lo">Lock</span><span class="st">Step</span> <span class="doc">/ pin map</span></h1>
+        <p class="tagline">Recommended pin assignments for the split-brain node — STM32G491RET6 (bring-up, LQFP-64) and ESP32-C6-MINI-1. GPIO/AF choices are final intent; physical LQFP pin numbers land in CubeMX at capture.</p>
+      </div>
+    </div>
+    <div class="meta">
+      <div><div class="k">Status</div><div class="v ok">Draft for schematic capture</div></div>
+      <div><div class="k">Motion MCU</div><div class="v">STM32G491RET6</div></div>
+      <div><div class="k">Wireless</div><div class="v">ESP32-C6-MINI-1</div></div>
+      <div><div class="k">Updated</div><div class="v tnum">2026-08-18</div></div>
+    </div>
+  </div>
+
+  <!-- ================= CROSS-STRAP DIAGRAM ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      Inter-chip link <span class="n">FIG.1</span>
+    </div>
+    <h2 class="sec">Eight wires between the brains</h2>
+    <p class="lead">Four data wires carry the app link <em>and</em> both ROM bootloaders — the C6 side lands on UART0 (GPIO16/17), the same pins its ROM bootloader listens on. Four straps let each chip hard-reset the other into its bootloader: mutual unbrickability is wiring, not firmware.</p>
+    <figure class="scroll panel">
+      <svg class="diagram" viewBox="0 0 860 314" role="img" aria-label="Eight wires between STM32G491 and ESP32-C6: UART TX, RX, RTS, CTS, and four cross-flash straps for EN, BOOT, BOOT0, and NRST.">
+        <defs>
+          <marker id="s1" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#4fd6c9"/></marker>
+          <marker id="n1" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 Z" fill="#5f757f"/></marker>
+        </defs>
+        <g><rect class="bx bx-mcu" x="60" y="52" width="220" height="228" rx="8"/><text class="lbl" x="170" y="40" text-anchor="middle">STM32G491</text></g>
+        <g><rect class="bx bx-s" x="580" y="52" width="220" height="228" rx="8"/><text class="lbl" x="690" y="40" text-anchor="middle">ESP32-C6</text></g>
+        <!-- UART data -->
+        <text class="pinlbl" x="270" y="82" text-anchor="end">PA2 · USART2_TX</text>
+        <path class="wire ws" d="M280,78 H574" marker-end="url(#s1)"/>
+        <text class="pinlbl" x="590" y="82">GPIO17 · U0RXD</text>
+        <text class="pinlbl" x="270" y="108" text-anchor="end">PA3 · USART2_RX</text>
+        <path class="wire ws" d="M580,104 H286" marker-end="url(#s1)"/>
+        <text class="pinlbl" x="590" y="108">GPIO16 · U0TXD</text>
+        <text class="pinlbl" x="270" y="134" text-anchor="end">PA1 · RTS</text>
+        <path class="wire ws" d="M280,130 H574" marker-end="url(#s1)"/>
+        <text class="pinlbl" x="590" y="134">GPIO4 · CTS</text>
+        <text class="pinlbl" x="270" y="160" text-anchor="end">PA0 · CTS</text>
+        <path class="wire ws" d="M580,156 H286" marker-end="url(#s1)"/>
+        <text class="pinlbl" x="590" y="160">GPIO5 · RTS</text>
+        <text class="wt" x="430" y="66" text-anchor="middle">app link · esptool · both ROM bootloaders</text>
+        <!-- straps STM -> C6 -->
+        <text class="pinlbl" x="270" y="192" text-anchor="end">PB0</text>
+        <path class="wire wn dash" d="M280,188 H574" marker-end="url(#n1)"/>
+        <text class="pinlbl" x="590" y="192">EN</text>
+        <text class="pinlbl" x="270" y="216" text-anchor="end">PB1</text>
+        <path class="wire wn dash" d="M280,212 H574" marker-end="url(#n1)"/>
+        <text class="pinlbl" x="590" y="216">GPIO9 · BOOT</text>
+        <!-- straps C6 -> STM -->
+        <text class="pinlbl" x="270" y="240" text-anchor="end">PB8 · BOOT0</text>
+        <path class="wire wn dash" d="M580,236 H286" marker-end="url(#n1)"/>
+        <text class="pinlbl" x="590" y="240">GPIO2</text>
+        <text class="pinlbl" x="270" y="264" text-anchor="end">NRST</text>
+        <path class="wire wn dash" d="M580,260 H286" marker-end="url(#n1)"/>
+        <text class="pinlbl" x="590" y="264">GPIO3</text>
+        <text class="wt" x="430" y="300" text-anchor="middle">straps via 10 k series — each chip can drop the other into its ROM bootloader</text>
+      </svg>
+      <figcaption>solid = UART data (3 Mbaud, HW flow control) · dashed = reset/boot straps</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= STM32 MAP ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>
+      STM32G491RET6 <span class="n">LQFP-64</span>
+    </div>
+    <h2 class="sec">Motion MCU assignments</h2>
+    <p class="lead">Grouped by function. AF numbers and ROM-bootloader interfaces verified against the ST pin database and AN2606 Rev 61 (2026-08-18).</p>
+    <div class="scroll panel">
+      <table>
+        <thead><tr><th>Signal</th><th>Pin</th><th>AF / mode</th><th>Connects to</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="5">CAN-FD bus</td></tr>
+          <tr><td class="sig">FDCAN2_TX</td><td class="pin">PB6</td><td class="af">AF9</td><td class="to">TCAN104xV TXD</td><td class="to">FDCAN2, not FDCAN1 — see the BOOT0 note below</td></tr>
+          <tr><td class="sig">FDCAN2_RX</td><td class="pin">PB5</td><td class="af">AF9</td><td class="to">TCAN104xV RXD</td><td class="to">verified: G491 has FDCAN1 + FDCAN2 (ST pin database)</td></tr>
+          <tr><td class="sig">TCAN STB</td><td class="pin">PC8</td><td class="af">GPIO out</td><td class="to">TCAN104xV STB</td><td class="to">optional — default strap low (always-on)</td></tr>
+
+          <tr class="grp"><td colspan="5">USB</td></tr>
+          <tr><td class="sig">USB_DM</td><td class="pin">PA11</td><td class="af">USB</td><td class="to">USB-C D−</td><td class="to">fixed function; ESD array at connector</td></tr>
+          <tr><td class="sig">USB_DP</td><td class="pin">PA12</td><td class="af">USB</td><td class="to">USB-C D+</td><td class="to">CDC control + ROM DFU</td></tr>
+
+          <tr class="grp"><td colspan="5">ESP32-C6 link</td></tr>
+          <tr><td class="sig">USART2_TX</td><td class="pin">PA2</td><td class="af">AF7</td><td class="to">C6 GPIO17 (U0RXD)</td><td class="to">AN2606-verified ROM bootloader USART — ROM uses 8-E-1</td></tr>
+          <tr><td class="sig">USART2_RX</td><td class="pin">PA3</td><td class="af">AF7</td><td class="to">C6 GPIO16 (U0TXD)</td><td class="to">USART1 PA9/PA10 is the verified ROM alternate</td></tr>
+          <tr><td class="sig">USART2_RTS</td><td class="pin">PA1</td><td class="af">AF7</td><td class="to">C6 GPIO4 (CTS)</td><td class="to">HW flow control @ 3 Mbaud</td></tr>
+          <tr><td class="sig">USART2_CTS</td><td class="pin">PA0</td><td class="af">AF7</td><td class="to">C6 GPIO5 (RTS)</td><td class="to"></td></tr>
+          <tr><td class="sig">C6_EN</td><td class="pin">PB0</td><td class="af">GPIO out</td><td class="to">C6 EN</td><td class="to">10 k pull-up + 1 µF at the C6 side</td></tr>
+          <tr><td class="sig">C6_BOOT</td><td class="pin">PB1</td><td class="af">GPIO out</td><td class="to">C6 GPIO9</td><td class="to">low through reset = C6 download mode</td></tr>
+
+          <tr class="grp"><td colspan="5">TMC5130</td></tr>
+          <tr><td class="sig">SPI1_SCK</td><td class="pin">PA5</td><td class="af">AF5</td><td class="to">TMC SCK</td><td class="to"></td></tr>
+          <tr><td class="sig">SPI1_MISO</td><td class="pin">PA6</td><td class="af">AF5</td><td class="to">TMC SDO</td><td class="to"></td></tr>
+          <tr><td class="sig">SPI1_MOSI</td><td class="pin">PA7</td><td class="af">AF5</td><td class="to">TMC SDI</td><td class="to"></td></tr>
+          <tr><td class="sig">TMC_CS</td><td class="pin">PA4</td><td class="af">GPIO out</td><td class="to">TMC CSN</td><td class="to"></td></tr>
+          <tr><td class="sig">TMC_ENN</td><td class="pin">PB2</td><td class="af">GPIO out</td><td class="to">TMC DRV_ENN</td><td class="to">pull-up so the driver is off until firmware says otherwise</td></tr>
+          <tr><td class="sig">TMC_DIAG0</td><td class="pin">PB10</td><td class="af">EXTI in</td><td class="to">TMC DIAG0</td><td class="to">stall / driver events</td></tr>
+          <tr><td class="sig">TMC_DIAG1</td><td class="pin">PB11</td><td class="af">EXTI in</td><td class="to">TMC DIAG1</td><td class="to"></td></tr>
+          <tr><td class="sig">MCO</td><td class="pin">PA8</td><td class="af">AF0</td><td class="to">TMC CLK16</td><td class="to">optional external clock; strap CLK16 low to use TMC internal osc</td></tr>
+
+          <tr class="grp"><td colspan="5">MT6701 encoder</td></tr>
+          <tr><td class="sig">SPI2_SCK</td><td class="pin">PB13</td><td class="af">AF5</td><td class="to">MT6701 CLK</td><td class="to">SSI read as SPI, RX-only</td></tr>
+          <tr><td class="sig">SPI2_MISO</td><td class="pin">PB14</td><td class="af">AF5</td><td class="to">MT6701 DO</td><td class="to"></td></tr>
+          <tr><td class="sig">ENC_CSN</td><td class="pin">PB12</td><td class="af">GPIO out</td><td class="to">MT6701 CSN</td><td class="to"></td></tr>
+          <tr><td class="sig">ENC_A</td><td class="pin">PC6</td><td class="af">TIM8_CH1 · AF4</td><td class="to">MT6701 A</td><td class="to">optional ABZ path — DNP on production</td></tr>
+          <tr><td class="sig">ENC_B</td><td class="pin">PC7</td><td class="af">TIM8_CH2 · AF4</td><td class="to">MT6701 B</td><td class="to">hardware quadrature experiment on bring-up</td></tr>
+          <tr><td class="sig">ENC_Z</td><td class="pin">PB3</td><td class="af">EXTI in</td><td class="to">MT6701 Z</td><td class="to">shares SWO — jumper-select trace or index</td></tr>
+
+          <tr class="grp"><td colspan="5">AP33772S PD sink</td></tr>
+          <tr><td class="sig">I2C1_SCL</td><td class="pin">PA15</td><td class="af">AF4</td><td class="to">AP33772S SCL</td><td class="to">2.2 k pull-ups to 3V3</td></tr>
+          <tr><td class="sig">I2C1_SDA</td><td class="pin">PB7</td><td class="af">AF4</td><td class="to">AP33772S SDA</td><td class="to"></td></tr>
+          <tr><td class="sig">PD_INT</td><td class="pin">PC13</td><td class="af">EXTI in</td><td class="to">AP33772S INT</td><td class="to">contract-change events</td></tr>
+
+          <tr class="grp"><td colspan="5">Boot · reset · debug</td></tr>
+          <tr><td class="sig">BOOT0</td><td class="pin">PB8</td><td class="af">boot strap</td><td class="to">C6 GPIO2 (10 k) + pull-down</td><td class="to">kept as true hardware BOOT0 — the reason CAN uses FDCAN2</td></tr>
+          <tr><td class="sig">NRST</td><td class="pin">PG10</td><td class="af">reset</td><td class="to">C6 GPIO3 (1 k) + SWD + button</td><td class="to"></td></tr>
+          <tr><td class="sig">SWDIO</td><td class="pin">PA13</td><td class="af">SWD</td><td class="to">Tag-Connect</td><td class="to"></td></tr>
+          <tr><td class="sig">SWCLK</td><td class="pin">PA14</td><td class="af">SWD</td><td class="to">Tag-Connect</td><td class="to"></td></tr>
+
+          <tr class="grp"><td colspan="5">Clock · analog · misc</td></tr>
+          <tr><td class="sig">HSE crystal</td><td class="pin">PF0 / PF1</td><td class="af">OSC</td><td class="to">16 MHz crystal</td><td class="to">FD data phase wants better than HSI16's ±1 % — fit the crystal</td></tr>
+          <tr><td class="sig">VM_SENSE</td><td class="pin">PC0</td><td class="af">ADC in</td><td class="to">VM divider</td><td class="to">bus-voltage telemetry</td></tr>
+          <tr><td class="sig">VBUS_SENSE</td><td class="pin">PC1</td><td class="af">ADC in</td><td class="to">VBUS divider</td><td class="to">USB-attached detection</td></tr>
+          <tr><td class="sig">NODE_ID 0–2</td><td class="pin wrapok">PC2 · PC3 · PC4</td><td class="af">GPIO in</td><td class="to">solder straps</td><td class="to">joint address before auto-election exists</td></tr>
+          <tr><td class="sig">LED 0–1</td><td class="pin wrapok">PC10 · PC11</td><td class="af">GPIO out</td><td class="to">status LEDs</td><td class="to"></td></tr>
+          <tr><td class="sig">Spares</td><td class="pin wrapok">PA9 · PA10 · PB4 · PB9 · PB15 · PC9 · PC12 · PC14 · PC15 · PD2</td><td class="af">—</td><td class="to">test points / header</td><td class="to">PA9/PA10 reserved as the USART1 fallback link position</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note" style="border-left-color:var(--signal)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4fd6c9" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 6h4"/></svg>
+      <p><strong>One connector, three separate buses — and one deliberate NC.</strong> The USB-C receptacle fans out: D+/D− go only to the STM32 (PA11/PA12, via ESD array); CC1/CC2 go to the AP33772S — PD negotiation lives entirely on the CC wire; VBUS passes through the AP33772S's NMOS into the ideal-diode OR. The AP33772S's DP/DN pins exist only for <em>moisture detection</em>, and the datasheet explicitly allows leaving them unconnected when that function is waived (pins 18/19, "could be unconnected") — waived here, because the data pair is the STM32's live USB bus. The only feature traded away is connector moisture sensing.</p>
+    </div>
+    <div class="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <p><strong>Why FDCAN2, not FDCAN1.</strong> On the G4, BOOT0 shares PB8 — and on a 64-pin package FDCAN1 can only land on PB8/PB9 (PA11/PA12 belong to USB). CAN RX idles high, which would pull BOOT0 high at every reset and boot the ROM loader instead of the app. Using FDCAN2 on PB5/PB6 keeps PB8 as a real, C6-drivable BOOT0 with a local pull-down. Verified: the G491 has both FDCAN1 and FDCAN2 (PB5/PB6, AF9, per the ST pin database) — no fallback needed.</p>
+    </div>
+  </section>
+
+  <!-- ================= C6 MAP ================= -->
+  <section>
+    <div class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12a7 7 0 0 1 14 0M8.5 12a3.5 3.5 0 0 1 7 0M12 12v6"/></svg>
+      ESP32-C6-MINI-1
+    </div>
+    <h2 class="sec">Wireless co-processor assignments</h2>
+    <p class="lead">The C6 owns nothing but the radio and the link. UART0 doubles as its ROM bootloader interface, so the STM32 (or esptool through the STM32's passthrough) can always reflash it.</p>
+    <div class="scroll panel">
+      <table>
+        <thead><tr><th>Signal</th><th>Pin</th><th>Mode</th><th>Connects to</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="5">Link (UART0 — app + ROM bootloader)</td></tr>
+          <tr><td class="sig">U0TXD</td><td class="pin">GPIO16</td><td class="af">UART0</td><td class="to">STM32 PA3 (RX)</td><td class="to">default UART0 pins — ROM bootloader talks here</td></tr>
+          <tr><td class="sig">U0RXD</td><td class="pin">GPIO17</td><td class="af">UART0</td><td class="to">STM32 PA2 (TX)</td><td class="to"></td></tr>
+          <tr><td class="sig">CTS</td><td class="pin">GPIO4</td><td class="af">GPIO matrix</td><td class="to">STM32 PA1 (RTS)</td><td class="to">flow control active in app mode only</td></tr>
+          <tr><td class="sig">RTS</td><td class="pin">GPIO5</td><td class="af">GPIO matrix</td><td class="to">STM32 PA0 (CTS)</td><td class="to"></td></tr>
+
+          <tr class="grp"><td colspan="5">Boot &amp; reset</td></tr>
+          <tr><td class="sig">EN</td><td class="pin">EN</td><td class="af">input</td><td class="to">STM32 PB0</td><td class="to">10 k pull-up + 1 µF RC</td></tr>
+          <tr><td class="sig">BOOT</td><td class="pin">GPIO9</td><td class="af">strap</td><td class="to">STM32 PB1</td><td class="to">internal pull-up; low through reset = download mode</td></tr>
+          <tr><td class="sig">GPIO8</td><td class="pin">GPIO8</td><td class="af">strap</td><td class="to">10 k pull-up, else free</td><td class="to">must be high for download mode — don't load it low</td></tr>
+
+          <tr class="grp"><td colspan="5">Cross-flash outputs (C6 → STM32)</td></tr>
+          <tr><td class="sig">STM_BOOT0</td><td class="pin">GPIO2</td><td class="af">GPIO out</td><td class="to">STM32 PB8 (10 k)</td><td class="to">drive high + pulse NRST → G4 ROM bootloader</td></tr>
+          <tr><td class="sig">STM_NRST</td><td class="pin">GPIO3</td><td class="af">GPIO out</td><td class="to">STM32 NRST (1 k)</td><td class="to">configure open-drain; never drive high against SWD</td></tr>
+
+          <tr class="grp"><td colspan="5">Debug &amp; spares</td></tr>
+          <tr><td class="sig">USB-Serial-JTAG</td><td class="pin wrapok">GPIO12 / GPIO13</td><td class="af">USB D− / D+</td><td class="to">test pads</td><td class="to">native C6 debug — pads only on bring-up</td></tr>
+          <tr><td class="sig">Spares</td><td class="pin wrapok">GPIO0 · GPIO1 · GPIO6 · GPIO7 · GPIO15 · GPIO18–23</td><td class="af">—</td><td class="to">header / test points</td><td class="to">GPIO0/1 are ADC-capable</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note" style="border-left-color:var(--signal)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4fd6c9" stroke-width="2"><path d="M12 2v20M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      <p><strong>Module placement.</strong> Keep the MINI-1's antenna end at the board edge with a copper keep-out per the module datasheet — on a 42 mm node this pins the C6 to one corner before anything else is placed. Route the eight link wires away from the TMC's motor pins.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="path">spec: <b>LockStep/docs/DESIGN.md</b> · companion: <b>design-reference.html</b></div>
+    <div class="open">Verified against ST pin DB + AN2606 Rev 61: FDCAN2 PB5/PB6 AF9 · USART2 + USB-DFU in ROM · TIM8 AF4. Still open: AP33772S I2C address · final divider ratios.</div>
+  </footer>
+
+</div>
